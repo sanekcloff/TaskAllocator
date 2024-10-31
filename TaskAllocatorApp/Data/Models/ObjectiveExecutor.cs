@@ -8,6 +8,8 @@ namespace Data.Models
 {
     public class ObjectiveExecutor
     {
+        private ObjectiveExecutor() { }
+
         public bool IsReady { get; set; }
 
         public Guid ObjectiveId { get; set; }

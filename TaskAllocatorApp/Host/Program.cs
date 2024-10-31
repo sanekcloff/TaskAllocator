@@ -1,25 +1,37 @@
 ﻿using Data.DataContext;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using static Host.Logger;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
+using Host.Logs;
+using Host.ServerControls;
+using System.ComponentModel;
 
 namespace Host
 {
-    internal class Program
+    internal class Program 
     {
+
         static void Main(string[] args)
         {
-            new DatabaseFacade(new SqliteDBContext()).EnsureCreated();
-            LogWrite("Server started");
-            while(true) { }
-        }
-    }
-    static class Logger
-    {
-        const string loggerName = "Logger";
-        public static void LogWrite(string text)
-        {
-            Console.Write($"\n[{DateTime.Now.ToString("f")}] - {loggerName}: {text}");
+            Server.ServerStart += Logger.OnServerAction;
+            Server.ServerStop += Logger.OnServerAction;
+            Server.ClientConnected += Logger.OnServerAction;
+            Server.ServerThrowException += Logger.OnServerAction;
+            // Запуск сервера
+            Server.Start();
+
+            // Создание базы данных при отсутсвии
+            var context = new SqliteDBContext();
+            new DatabaseFacade(context).EnsureCreated();
+
+            while (true)
+            {
+                Server.AcceptClient();
+                Server.BroadcastConnection();
+            }
         }
     }
 }
